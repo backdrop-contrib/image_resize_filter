@@ -287,11 +287,12 @@ function image_resize_filter_get_images($settings, $text) {
     }
 
     // Determine if this is a local or remote file.
+    $base_path = base_path();
     $location = 'unknown';
-    if (strpos($src, '/') === 0) {
+    if (strpos($src, $base_path) === 0) {
       $location = 'local';
     }
-    elseif (preg_match('/http[s]?:\/\/' . preg_quote($_SERVER['HTTP_HOST'], '/') . '/', $src)) {
+    elseif (preg_match('/http[s]?:\/\/' . preg_quote($_SERVER['HTTP_HOST'] . $base_path, '/') . '/', $src)) {
       $location = 'local';
     }
     elseif (strpos($src, 'http') === 0) {
