@@ -174,7 +174,6 @@ function image_resize_filter_form($form, &$form_state, $filter, $format, $defaul
  */
 function theme_image_resize_filter_form($variables) {
   $form = $variables['form'];
-  $format = $form['#format'];
 
   $link = 'link';
   $class = 'link_class';
@@ -342,7 +341,6 @@ function image_resize_filter_get_images($settings, $text) {
       $style_name = $image_style_matches[1];
       $original_path = $scheme . '://' . $image_style_matches[3];
       if ($style = image_style_load($style_name)) {
-        $derivative_path = image_style_path($style_name, $original_path);
         image_style_create_derivative($style, $original_path, $local_path);
       }
     }
@@ -471,7 +469,6 @@ function image_resize_filter_process_images($images, $text, $settings) {
     }
     // Destination and local path are the same if we're just adding attributes.
     elseif (!$image['resize']) {
-      $local_file_path = '';
       $image['destination'] = $image['local_path'];
     }
     else {
@@ -522,8 +519,6 @@ function image_resize_filter_process_images($images, $text, $settings) {
  *   Settings for the input filter.
  */
 function image_resize_filter_image_tag($image = NULL, $settings = NULL) {
-  global $base_url;
-
   $src = file_create_url($image['destination']);
 
   // Strip the http:// from the path if the original did not include it.
@@ -562,7 +557,6 @@ function image_resize_filter_image_tag($image = NULL, $settings = NULL) {
  */
 function theme_image_resize_filter_image($variables) {
   $image = $variables['image'];
-  $settings = $variables['settings'];
 
   $output = '<img' . drupal_attributes($image['attributes']) . ' />';
   if ($image['link']) {
@@ -591,7 +585,7 @@ function image_resize_filter_delete_derivatives($original_uri) {
   $directory = str_replace($path_info['scheme'] . '://', $path_info['scheme'] . '://resize/', $path_info['dirname']);
 
   // Delete all the derivatives.
-  $files = file_scan_directory($directory, '/' . preg_quote($basename, '/') . '-[0-9]+[x][0-9]+\.' . preg_quote($extension, '/') . '/', array('callback' => 'file_unmanaged_delete'));
+  file_scan_directory($directory, '/' . preg_quote($basename, '/') . '-[0-9]+[x][0-9]+\.' . preg_quote($extension, '/') . '/', array('callback' => 'file_unmanaged_delete'));
 
   // Then work up the directories and delete any empty ones.
   $folders = explode('/', $directory);
