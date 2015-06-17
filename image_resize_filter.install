@@ -1,13 +1,6 @@
 <?php
 
 /**
- * Implements hook_install().
- */
-function image_resize_filter_install() {
-  drupal_set_message(t('The image resize filter has been installed. Before this does anything, the image resize filter needs to be added to one or more text formats. Visit the <a href="!url">text format administration</a> to set up this filter.', array('!url' => url('admin/config/content/formats'))), 'warning');
-}
-
-/**
  * Implements hook_uninstall().
  */
 function image_resize_filter_uninstall() {
