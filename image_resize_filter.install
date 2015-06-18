@@ -46,7 +46,9 @@ function image_resize_filter_update_6100() {
 function image_resize_filter_update_6101() {
   $ret = array();
 
-  db_query("DELETE FROM {variable} WHERE name LIKE 'image_resize_filter_allowed_difference_%'");
+  db_delete('variable')
+    ->condition('name', 'image_resize_filter_allowed_difference_%', 'LIKE')
+    ->execute();
   $ret[] = array('success' => TRUE, 'query' => t('Image resize allowed difference option removed.'));
 
   return $ret;
