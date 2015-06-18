@@ -143,7 +143,7 @@ function image_resize_filter_form($form, &$form_state, $filter, $format, $defaul
     '#title' => t('Resize images stored'),
     '#options' => array('local' => t('Locally'), 'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)')),
     '#default_value' => $filter->settings['image_locations'],
-    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transfered via HTTP each time the filter cache is cleared.'),
+    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
   );
 
   $settings['image_resize']['link'] = array(
@@ -238,7 +238,7 @@ function image_resize_filter_get_images($settings, $text) {
   preg_match_all('/((<a [^>]*>)[ ]*)?(<img[^>]*?src[ ]*=[ ]*"([^"]+)"[^>]*>)/i', $text, $matches);
 
   // Loop through matches and find if replacements are necessary.
-  // $matches[0]: All complete image tags and preceeding anchors.
+  // $matches[0]: All complete image tags and preceding anchors.
   // $matches[1]: The anchor tag of each match (if any).
   // $matches[2]: The anchor tag and trailing whitespace of each match (if any).
   // $matches[3]: The complete img tag.
@@ -345,7 +345,7 @@ function image_resize_filter_get_images($settings, $text) {
       }
     }
 
-    // If this is a remote image, retreive it to check its size.
+    // If this is a remote image, retrieve it to check its size.
     if ($location == 'remote') {
       $result = drupal_http_request($src);
       if ($result->code == 200) {
