@@ -372,15 +372,15 @@ function image_resize_filter_get_images($settings, $text) {
     $actual_height = (int) $image_size[1];
 
     // If either height or width is missing, calculate the other.
-    if (!$attributes['width'] && !$attributes['height']) {
+    if (empty($attributes['width']) && empty($attributes['height'])) {
       $attributes['width'] = $actual_width;
       $attributes['height'] = $actual_height;
     }
-    if (!$attributes['height'] && is_numeric($attributes['width'])) {
+    if (empty($attributes['height']) && is_numeric($attributes['width'])) {
       $ratio = $actual_height/$actual_width;
       $attributes['height'] = (int) round($ratio * $attributes['width']);
     }
-    elseif (!$attributes['width'] && is_numeric($attributes['height'])) {
+    elseif (empty($attributes['width']) && is_numeric($attributes['height'])) {
       $ratio = $actual_width/$actual_height;
       $attributes['width'] = (int) round($ratio * $attributes['height']);
     }
