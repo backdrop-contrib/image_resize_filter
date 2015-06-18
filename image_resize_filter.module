@@ -492,8 +492,16 @@ function image_resize_filter_process_images($images, $text, $settings) {
       // Resize the local image if the sizes don't match.
       elseif ($image['resize']) {
         $res = image_load($image['local_path']);
-        image_resize($res, $image['expected_size']['width'], $image['expected_size']['height']);
-        image_save($res, $image['destination']);
+        if ($res) {
+          // Image loaded successfully; resize
+          image_resize($res, $image['expected_size']['width'], $image['expected_size']['height']);
+          image_save($res, $image['destination']);
+        } else {
+          // Image failed to load - type doesn't match extension or invalid; keep original file
+          $handle = fopen($image['destination'], 'w');
+          fwrite($handle, file_get_contents($image['local_path']));
+          fclose($handle);
+        }
       }
       @chmod($image['destination'], 0664);
     }
