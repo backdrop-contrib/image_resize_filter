@@ -111,7 +111,7 @@ function image_resize_filter_file_download($uri) {
 }
 
 /**
- * Implements hook_form_[form_id]_alter().
+ * Implements hook_form_FORM_ID_alter().
  */
 function image_resize_filter_form_system_file_system_settings_alter($form, $form_state) {
   $form['#submit'][] = 'image_resize_filter_file_system_settings_submit';
@@ -377,11 +377,11 @@ function image_resize_filter_get_images($settings, $text) {
       $attributes['height'] = $actual_height;
     }
     if (empty($attributes['height']) && is_numeric($attributes['width'])) {
-      $ratio = $actual_height/$actual_width;
+      $ratio = $actual_height / $actual_width;
       $attributes['height'] = (int) round($ratio * $attributes['width']);
     }
     elseif (empty($attributes['width']) && is_numeric($attributes['height'])) {
-      $ratio = $actual_width/$actual_height;
+      $ratio = $actual_width / $actual_height;
       $attributes['width'] = (int) round($ratio * $attributes['height']);
     }
 
