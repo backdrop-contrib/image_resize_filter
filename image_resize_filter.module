@@ -254,7 +254,7 @@ function image_resize_filter_get_images($settings, $text) {
 
     // Find attributes of this image tag.
     $attribute_matches = array();
-    preg_match_all('/([a-z]+)[ ]*=[ ]*"([^"]*)"/i', $img_tag, $attribute_matches);
+    preg_match_all('/([\w\-]+)[ ]*=[ ]*"([^"]*)"/i', $img_tag, $attribute_matches);
     foreach ($attribute_matches[0] as $key => $match) {
       $attribute = $attribute_matches[1][$key];
       $attribute_value = $attribute_matches[2][$key];
