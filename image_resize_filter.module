@@ -246,7 +246,15 @@ function image_resize_filter_get_images($settings, $text) {
   foreach ($matches[0] as $key => $match) {
     $has_link = (bool) $matches[1][$key];
     $img_tag = $matches[3][$key];
-    $src = $matches[4][$key];
+
+    // Extract the query string (image style token) if any from the url.
+    $src_query = parse_url($matches[4][$key], PHP_URL_QUERY);
+    if ($src_query) {
+      $src = substr($matches[4][$key], 0, - strlen($src_query) - 1);
+    }
+    else {
+      $src = $matches[4][$key];
+    }
 
     $resize = NULL;
     $image_size = NULL;
@@ -436,6 +444,7 @@ function image_resize_filter_get_images($settings, $text) {
       'img_tag' => $img_tag,
       'has_link' => $has_link,
       'original' => $src,
+      'original_query' => $src_query,
       'location' => $location,
       'local_path' => $local_path,
       'mime' => $image_size['mime'],
@@ -533,6 +542,13 @@ function image_resize_filter_image_tag($image = NULL, $settings = NULL) {
   if (!preg_match('/^http[s]?:\/\/' . preg_quote($_SERVER['HTTP_HOST']) . '/', $image['original'])) {
     $src = preg_replace('/^http[s]?:\/\/' . preg_quote($_SERVER['HTTP_HOST']) . '/', '', $src);
   }
+
+  // Restore any URL query.
+  if (isset($image['original_query'])) {
+    $src .= '?' . $image['original_query'];
+    $image['original'] .= '?' . $image['original_query'];
+  }
+
   $image['attributes']['src'] = $src;
 
   // Set the link properties if necessary.
