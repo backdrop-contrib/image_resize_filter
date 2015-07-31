@@ -1,4 +1,5 @@
 name = Image resize filter
 description = Filter to automatically scale images to their height and width dimensions.
 core = 7.x
+package = Input filters
 configure = admin/config/content/formats
