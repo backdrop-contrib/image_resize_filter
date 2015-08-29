@@ -669,8 +669,8 @@ function image_resize_filter_delete_all() {
 function image_resize_filter_pathinfo($uri) {
   $info = pathinfo($uri);
   $info['extension'] = substr($uri, strrpos($uri, '.') + 1);
-  $info['basename'] = basename($uri);
-  $info['filename'] = basename($uri, '.' . $info['extension']);
+  $info['basename'] = drupal_basename($uri);
+  $info['filename'] = drupal_basename($uri, '.' . $info['extension']);
   $info['scheme'] = file_uri_scheme($uri);
 
   if (empty($info['scheme'])) {
