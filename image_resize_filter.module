@@ -488,7 +488,7 @@ function image_resize_filter_process_images($images, $text, $settings) {
   foreach ($images as $image) {
     // Copy remote images locally.
     if ($image['location'] == 'remote') {
-      $local_file_path = 'resize/remote/' . md5(file_get_contents($image['local_path'])) . '-' . $image['expected_size']['width'] . 'x' . $image['expected_size']['height'] . '.'. $image['extension'];
+      $local_file_path = 'resize/remote/' . md5(file_get_contents($image['local_path'])) . '-' . $image['expected_size']['width'] . 'x' . $image['expected_size']['height'] . '.' . $image['extension'];
       $image['destination'] = variable_get('file_default_scheme', 'public') . '://' . $local_file_path;
     }
     // Destination and local path are the same if we're just adding attributes.
@@ -528,7 +528,8 @@ function image_resize_filter_process_images($images, $text, $settings) {
           // Image loaded successfully; resize.
           image_resize($res, $image['expected_size']['width'], $image['expected_size']['height']);
           image_save($res, $image['destination']);
-        } else {
+        }
+        else {
           // Image failed to load - type doesn't match extension or invalid; keep original file.
           $handle = fopen($image['destination'], 'w');
           fwrite($handle, file_get_contents($image['local_path']));
