@@ -17,7 +17,7 @@ Install
 1) Place the entire image_resize_filter directory in sites/all/modules. Then
    enable the module in Drupal.
 
-2) Visit the Adminsiter->Configuration->Content authoring->text formats
+2) Visit the Administration->Configuration->Content authoring->text formats
    (admin/config/content/formats). Click "configure" next to the text format you
    want to enable the image resize filter on.
 
