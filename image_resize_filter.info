@@ -1,5 +1,7 @@
-name = Image resize filter
-description = Filter to automatically scale images to their height and width dimensions.
-core = 7.x
+name = Image Resize Filter
+description = A filter that automatically resizes images to their width and height dimensions.
+backdrop = 1.x
+type = module
 package = Input filters
 configure = admin/config/content/formats
+
