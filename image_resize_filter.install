@@ -42,3 +42,11 @@ function image_resize_filter_update_last_removed() {
   return 7000;
 }
 
+/**
+ * Move settings from variables to config.
+ */
+function image_resize_filter_update_1000() {
+  config_set('image_resize_filter.settings', 'threshold', update_variable_get('image_resize_filter_threshold', 10));
+  update_variable_del('image_resize_filter_threshold');
+}
+
