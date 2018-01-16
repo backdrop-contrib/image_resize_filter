@@ -1,13 +1,8 @@
 <?php
 /**
  * @file
- * After adding to a text format, this filter will parse the contents of
- * submitted content and automatically scale image files to match the set
- * dimensions of img tags.
- *
- * Image that have been created take on the ownership of the original file.
- * Making so when the primary node is deleted, the images it provided are
- * deleted also.
+ * A filter that automatically resizes images to their width and height
+ * dimensions.
  */
 
 /**
@@ -23,38 +18,9 @@ function image_resize_filter_config_info() {
 }
 
 /**
- * Implements hook_help().
- */
-function image_resize_filter_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#image_resize_filter':
-      $instructions = array(
-        t('Visit the <a href="!url">Text formats</a> configuration page. Click "configure" next to the text format you want to enable the image resize filter on.', array('!url' => 'admin/config/content/formats')),
-        t('Check the box for "Image resize filter" under the list of filters.'),
-        t('<strong>Important</strong>: Re-order your enabled filters under "Filter processing order".') .
-        '<p>' . t('If using the Image Resize Filter on the "Filtered HTML" text format, you <strong>must</strong> ensure A) that the &lt;img&gt; tag is in the list of allowed tags and B) The "Image resize filter" is run <strong>before</strong> the "HTML filter".') . '</p>' .
-        '<p>' . t('If using the Image Resize Filter with BBCode or some other non-HTML filter, the "Image resize filter" must be run AFTER the BBCode filter.') . '</p>',
-        t('Optional. Click the Image resize filter tab underneath "Filter settings" to set additional configuration for the the image resize filter.'),
-      );
-
-      $output = '';
-      $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('The image resize filter module provides a <a href="!url">filter</a> that makes it easy to resize images, especially when combined with a WYSIWYG editor such as tinyMCE or FCKeditor. Users never have to worry about scaling image sizes again, just insert an image and set it\'s height and width properties in HTML and the image is resized on output. To use the image resize filter, follow these steps.', array('!url' => url('admin/help/filter'))) . '</p>';
-      $output .= theme('item_list', array(
-        'items' => $instructions,
-        'type' => 'ol',
-        'title' => t('Installation and use'),
-      ));
-      return $output;
-  }
-}
-
-/**
  * Implements hook_filter_info().
  */
 function image_resize_filter_filter_info() {
-  $filters = array();
-
   $filters['image_resize_filter'] = array(
     'title' => t('Image resize filter'),
     'process callback' => 'image_resize_filter_process_filter',
@@ -81,154 +47,6 @@ function image_resize_filter_process_filter($text, $filter) {
   $settings['image_locations'] = array_filter($filter->settings['image_locations']);
   $images = image_resize_filter_get_images($settings, $text);
   return $images ? image_resize_filter_process_images($images, $text, $settings) : $text;
-}
-
-/**
- * Implements hook_file_delete().
- */
-function image_resize_filter_file_delete($file) {
-  if (isset($file->uri)) {
-    image_resize_filter_delete_derivatives($file->uri);
-  }
-}
-
-/**
- * Implements hook_theme().
- */
-function image_resize_filter_theme() {
-  return array(
-    'image_resize_filter_image' => array(
-      'variables' => array('image' => NULL, 'settings' => NULL),
-    ),
-    'image_resize_filter_form' => array(
-      'render element' => 'form',
-    ),
-  );
-}
-
-/**
- * Implements hook_file_download().
- */
-function image_resize_filter_file_download($uri) {
-  // If this is a resized image, use the same access as the original image.
-  $matches = array();
-  if (preg_match('/^([a-z0-9\-_]+:\/\/)resize\/(.*)?-\d+x\d+(\.png|\.jpg|\.jpeg|\.gif)$/i', $uri, $matches)) {
-    $headers = module_invoke_all('file_download', $matches[1] . $matches[2] . $matches[3]);
-    if (in_array(-1, $headers)) {
-      return -1;
-    }
-    if (count($headers)) {
-      return array(
-        'Content-Type' => file_get_mimetype($uri),
-        'Content-Length' => filesize($uri),
-      );
-    }
-  }
-}
-
-/**
- * Implements hook_form_FORM_ID_alter().
- */
-function image_resize_filter_form_system_file_system_settings_alter($form, $form_state) {
-  $form['#submit'][] = 'image_resize_filter_file_system_settings_submit';
-}
-
-/**
- * Additional #submit handler for the system_file_system_settings form.
- */
-function image_resize_filter_file_system_settings_submit($form, $form_state) {
-  // Clear filter caches when changing file system information.
-  cache_clear_all('*', 'cache_filter');
-}
-
-/**
- * The form for configuring the Image Resize Filter.
- */
-function image_resize_filter_form($form, &$form_state, $filter, $format, $defaults) {
-  $filter->settings += $defaults;
-
-  $settings['image_resize'] = array(
-    '#description' => t('The image resize filter will analyze &lt;img&gt; tags and compare the given height and width attributes to the actual file. If the file dimensions are different than those given in the &lt;img&gt; tag, the image will be copied and the src attribute will be updated to point to the resized image.'),
-    '#theme' => 'image_resize_filter_form',
-    '#format' => $format,
-    '#parents' => array('filters', 'image_resize_filter', 'settings'),
-  );
-
-  $settings['image_resize']['image_locations'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Resize images stored'),
-    '#options' => array('local' => t('Locally'), 'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)')),
-    '#default_value' => $filter->settings['image_locations'],
-    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
-  );
-
-  $settings['image_resize']['link'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('If resized, add a link to the original image.'),
-    '#default_value' => $filter->settings['link'],
-  );
-
-  $settings['image_resize']['link_class'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Optionally, give it the class'),
-    '#size' => '10',
-    '#default_value' => $filter->settings['link_class'],
-  );
-
-  $settings['image_resize']['link_rel'] = array(
-    '#type' => 'textfield',
-    '#title' => t('and/or a rel attribute'),
-    '#size' => '10',
-    '#default_value' => $filter->settings['link_rel'],
-  );
-
-  return $settings;
-}
-
-/**
- * Theme callback to theme the Image Resize Filter form.
- */
-function theme_image_resize_filter_form($variables) {
-  $form = $variables['form'];
-
-  $link = 'link';
-  $class = 'link_class';
-  $rel = 'link_rel';
-
-  $class_element = ' ';
-  $class_element .= '<span class="image-resize-filter-class">';
-  $class_element .= check_plain($form[$class]['#title']) . ': ';
-  $form[$class]['#title'] = NULL;
-  $class_element .= drupal_render($form[$class]);
-  $class_element .= '</span>';
-
-  $rel_element = ' ';
-  $rel_element .= '<span class="image-resize-filter-rel">';
-  $rel_element .= check_plain($form[$rel]['#title']) . ': ';
-  $form[$rel]['#title'] = NULL;
-  $rel_element .= drupal_render($form[$rel]);
-  $rel_element .= '</span>';
-
-  $link_element = drupal_render($form[$link]);
-
-  $output = '';
-  $output .= '<div class="container-inline image-resize-filter-link-options">';
-  $output .= $link_element;
-  $output .= $class_element;
-  $output .= $rel_element;
-  $output .= '</div>';
-
-  $form['placeholder'] = array(
-    '#type' => 'element',
-    '#title' => t('Link to the original'),
-    '#title_display' => 'before',
-    '#children' => $output,
-    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image. Adding the class "thickbox" is helpful if you have installed the <a href="http://drupal.org/project/thickbox">thickbox module</a>. The rel attribute may be useful when used with the <a href="http://drupal.org/project/lightbox2">lightbox2</a> and <a href="http://drupal.org/project/shadowbox">shadowbox</a> modules.'),
-  );
-
-  // Add a little bit of JavaScript. Not cached since it's only used here.
-  drupal_add_js(drupal_get_path('module', 'image_resize_filter') . '/image_resize_filter.js', array('aggregate' => FALSE));
-  return filter_xss_admin($form['#description']) . drupal_render_children($form);
 }
 
 /**
@@ -561,6 +379,152 @@ function image_resize_filter_process_images($images, $text, $settings) {
   }
 
   return str_replace($search, $replace, $text);
+}
+
+/**
+ * Form for configuring the Image Resize Filter.
+ */
+function image_resize_filter_form($form, &$form_state, $filter, $format) {
+  $settings['image_resize'] = array(
+    '#description' => t('The image resize filter will analyze &lt;img&gt; tags and compare the given height and width attributes to the actual file. If the file dimensions are different than those given in the &lt;img&gt; tag, the image will be copied and the src attribute will be updated to point to the resized image.'),
+    '#theme' => 'image_resize_filter_form',
+    '#format' => $format,
+    '#parents' => array('filters', 'image_resize_filter', 'settings'),
+  );
+
+  $settings['image_resize']['image_locations'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Resize images stored'),
+    '#options' => array('local' => t('Locally'), 'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)')),
+    '#default_value' => $filter->settings['image_locations'],
+    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
+  );
+
+  $settings['image_resize']['link'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('If resized, add a link to the original image.'),
+    '#default_value' => $filter->settings['link'],
+  );
+
+  $settings['image_resize']['link_class'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Optionally, give it the class'),
+    '#size' => '10',
+    '#default_value' => $filter->settings['link_class'],
+  );
+
+  $settings['image_resize']['link_rel'] = array(
+    '#type' => 'textfield',
+    '#title' => t('and/or a rel attribute'),
+    '#size' => '10',
+    '#default_value' => $filter->settings['link_rel'],
+  );
+
+  return $settings;
+}
+
+/**
+ * Implements hook_file_delete().
+ */
+function image_resize_filter_file_delete($file) {
+  if (isset($file->uri)) {
+    image_resize_filter_delete_derivatives($file->uri);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function image_resize_filter_theme() {
+  return array(
+    'image_resize_filter_image' => array(
+      'variables' => array('image' => NULL, 'settings' => NULL),
+    ),
+    'image_resize_filter_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_file_download().
+ */
+function image_resize_filter_file_download($uri) {
+  // If this is a resized image, use the same access as the original image.
+  $matches = array();
+  if (preg_match('/^([a-z0-9\-_]+:\/\/)resize\/(.*)?-\d+x\d+(\.png|\.jpg|\.jpeg|\.gif)$/i', $uri, $matches)) {
+    $headers = module_invoke_all('file_download', $matches[1] . $matches[2] . $matches[3]);
+    if (in_array(-1, $headers)) {
+      return -1;
+    }
+    if (count($headers)) {
+      return array(
+        'Content-Type' => file_get_mimetype($uri),
+        'Content-Length' => filesize($uri),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function image_resize_filter_form_system_file_system_settings_alter($form, $form_state) {
+  $form['#submit'][] = 'image_resize_filter_file_system_settings_submit';
+}
+
+/**
+ * Additional #submit handler for the system_file_system_settings form.
+ */
+function image_resize_filter_file_system_settings_submit($form, $form_state) {
+  // Clear filter caches when changing file system information.
+  cache_clear_all('*', 'cache_filter');
+}
+
+/**
+ * Theme callback to theme the Image Resize Filter form.
+ */
+function theme_image_resize_filter_form($variables) {
+  $form = $variables['form'];
+
+  $link = 'link';
+  $class = 'link_class';
+  $rel = 'link_rel';
+
+  $class_element = ' ';
+  $class_element .= '<span class="image-resize-filter-class">';
+  $class_element .= check_plain($form[$class]['#title']) . ': ';
+  $form[$class]['#title'] = NULL;
+  $class_element .= drupal_render($form[$class]);
+  $class_element .= '</span>';
+
+  $rel_element = ' ';
+  $rel_element .= '<span class="image-resize-filter-rel">';
+  $rel_element .= check_plain($form[$rel]['#title']) . ': ';
+  $form[$rel]['#title'] = NULL;
+  $rel_element .= drupal_render($form[$rel]);
+  $rel_element .= '</span>';
+
+  $link_element = drupal_render($form[$link]);
+
+  $output = '';
+  $output .= '<div class="container-inline image-resize-filter-link-options">';
+  $output .= $link_element;
+  $output .= $class_element;
+  $output .= $rel_element;
+  $output .= '</div>';
+
+  $form['placeholder'] = array(
+    '#type' => 'element',
+    '#title' => t('Link to the original'),
+    '#title_display' => 'before',
+    '#children' => $output,
+    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image. Adding the class "thickbox" is helpful if you have installed the <a href="http://drupal.org/project/thickbox">thickbox module</a>. The rel attribute may be useful when used with the <a href="http://drupal.org/project/lightbox2">lightbox2</a> and <a href="http://drupal.org/project/shadowbox">shadowbox</a> modules.'),
+  );
+
+  // Add a little bit of JavaScript. Not cached since it's only used here.
+  drupal_add_js(drupal_get_path('module', 'image_resize_filter') . '/image_resize_filter.js', array('aggregate' => FALSE));
+  return filter_xss_admin($form['#description']) . drupal_render_children($form);
 }
 
 /**
