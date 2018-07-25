@@ -680,9 +680,13 @@ function image_resize_filter_pathinfo($uri) {
   $info['filename'] = drupal_basename($uri, '.' . $info['extension']);
   $info['scheme'] = file_uri_scheme($uri);
 
+  // If scheme was empty, find stream wrapper with matching directory path.
   if (empty($info['scheme'])) {
     foreach (file_get_stream_wrappers() as $scheme => $stream_wrapper) {
       $scheme_base_path = file_stream_wrapper_get_instance_by_scheme($scheme)->getDirectoryPath();
+      if (empty($scheme_base_path)) {
+        continue;
+      }
       $matches = array();
       if (preg_match('/^' . preg_quote($scheme_base_path, '/') . '\/?(.*)/', $info['dirname'], $matches)) {
         $info['scheme'] = $scheme;
@@ -690,6 +694,11 @@ function image_resize_filter_pathinfo($uri) {
         break;
       }
     }
+  }
+
+  // If scheme is still empty, fallback to public.
+  if (empty($info['scheme'])) {
+    $info['scheme'] = 'public';
   }
 
   return $info;
