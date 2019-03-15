@@ -3,7 +3,7 @@ Image Resize Filter
 
 This filter automatically resizes images to their width and height dimensions.
 Users never have to worry about uploading pre-sized images again; they can just
-insert an image, set it's width and height properties, and the image is
+insert an image, set its width and height properties, and the image is
 automatically resized on output.
 
 Installation
