@@ -47,11 +47,16 @@ editor or editing a piece of content, DO NOT file an issue with Image Resize
 Filter. This module is only responsible for the display of output and has
 absolutely no effect on editing or creating new content.
 
+Current Maintainer
+-------
+
+- [Laryn Kragt Bakker](https://github.com/laryn), [CEDC.org](https://CEDC.org) 
+
 Credits
 -------
 
-- Ported to Backdrop CMS by Peter Anderson (https://github.com/BWPanda).
-- Originally written for Drupal by Nathan Haug (https://github.com/quicksketch).
+- Ported to Backdrop CMS by [Peter Anderson](https://github.com/BWPanda).
+- Originally written for Drupal by [Nate Lampton](https://github.com/quicksketch).
 
 License
 -------

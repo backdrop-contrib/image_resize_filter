@@ -193,14 +193,14 @@ function image_resize_filter_get_images($settings, $text) {
       // Basic flood prevention on remote images.
       $resize_threshold = config_get('image_resize_filter.settings', 'threshold');
       if (!flood_is_allowed('image_resize_filter_remote', $resize_threshold, 120)) {
-        drupal_set_message(t('Image resize threshold of @count remote images has been reached. Please use fewer remote images.', array('@count' => $resize_threshold)), 'error', FALSE);
+        backdrop_set_message(t('Image resize threshold of @count remote images has been reached. Please use fewer remote images.', array('@count' => $resize_threshold)), 'error', FALSE);
         continue;
       }
       flood_register_event('image_resize_filter_remote', 120);
 
-      $result = drupal_http_request($src);
+      $result = backdrop_http_request($src);
       if ($result->code == 200) {
-        $tmp_file = drupal_tempnam('temporary://', 'image_resize_filter_');
+        $tmp_file = backdrop_tempnam('temporary://', 'image_resize_filter_');
         $handle = fopen($tmp_file, 'w');
         fwrite($handle, $result->data);
         fclose($handle);
@@ -336,7 +336,7 @@ function image_resize_filter_process_images($images, $text, $settings) {
       // Basic flood prevention of resizing.
       $resize_threshold = config_get('image_resize_filter.settings', 'threshold');
       if (!flood_is_allowed('image_resize_filter_resize', $resize_threshold, 120)) {
-        drupal_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => floor($resize_threshold / 2))), 'error', FALSE);
+        backdrop_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => floor($resize_threshold / 2))), 'error', FALSE);
         continue;
       }
       flood_register_event('image_resize_filter_resize', 120);
@@ -495,17 +495,17 @@ function theme_image_resize_filter_form($variables) {
   $class_element .= '<span class="image-resize-filter-class">';
   $class_element .= check_plain($form[$class]['#title']) . ': ';
   $form[$class]['#title'] = NULL;
-  $class_element .= drupal_render($form[$class]);
+  $class_element .= backdrop_render($form[$class]);
   $class_element .= '</span>';
 
   $rel_element = ' ';
   $rel_element .= '<span class="image-resize-filter-rel">';
   $rel_element .= check_plain($form[$rel]['#title']) . ': ';
   $form[$rel]['#title'] = NULL;
-  $rel_element .= drupal_render($form[$rel]);
+  $rel_element .= backdrop_render($form[$rel]);
   $rel_element .= '</span>';
 
-  $link_element = drupal_render($form[$link]);
+  $link_element = backdrop_render($form[$link]);
 
   $output = '';
   $output .= '<div class="container-inline image-resize-filter-link-options">';
@@ -523,8 +523,8 @@ function theme_image_resize_filter_form($variables) {
   );
 
   // Add a little bit of JavaScript. Not cached since it's only used here.
-  drupal_add_js(drupal_get_path('module', 'image_resize_filter') . '/image_resize_filter.js', array('aggregate' => FALSE));
-  return filter_xss_admin($form['#description']) . drupal_render_children($form);
+  backdrop_add_js(backdrop_get_path('module', 'image_resize_filter') . '/js/image_resize_filter.js', array('aggregate' => FALSE));
+  return filter_xss_admin($form['#description']) . backdrop_render_children($form);
 }
 
 /**
@@ -582,9 +582,9 @@ function image_resize_filter_image_tag($image = NULL, $settings = NULL) {
 function theme_image_resize_filter_image($variables) {
   $image = $variables['image'];
 
-  $output = '<img' . drupal_attributes($image['attributes']) . ' />';
+  $output = '<img' . backdrop_attributes($image['attributes']) . ' />';
   if ($image['link']) {
-    $output = '<a' . drupal_attributes($image['link']['attributes']) . '>' . $output . '</a>';
+    $output = '<a' . backdrop_attributes($image['link']['attributes']) . '>' . $output . '</a>';
   }
   return $output;
 }
@@ -652,8 +652,8 @@ function image_resize_filter_delete_all() {
 function image_resize_filter_pathinfo($uri) {
   $info = pathinfo($uri);
   $info['extension'] = substr($uri, strrpos($uri, '.') + 1);
-  $info['basename'] = drupal_basename($uri);
-  $info['filename'] = drupal_basename($uri, '.' . $info['extension']);
+  $info['basename'] = backdrop_basename($uri);
+  $info['filename'] = backdrop_basename($uri, '.' . $info['extension']);
   $info['scheme'] = file_uri_scheme($uri);
 
   if (empty($info['scheme'])) {
