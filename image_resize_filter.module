@@ -236,6 +236,15 @@ function image_resize_filter_get_images($settings, $text) {
       $attributes['width'] = (int) round($ratio * $attributes['height']);
     }
 
+    // If a percentage has been used in either width or height, and the other
+    // attribute is not set at all, then set the missing attribute to an empty
+    // string in $attributes. $resize is used because it hasn't otherwise
+    // been operated on since the check for percentages.
+    if ($resize === FALSE) {
+      $attributes['height'] = (isset($attributes['height'])) ? $attributes['height'] : '';
+      $attributes['width'] = (isset($attributes['width'])) ? $attributes['width'] : '';
+    }
+
     // Determine if this image requires a resize. Prevent upscaling.
     if (!isset($resize)) {
       $resize = ($actual_width > $attributes['width'] || $actual_height > $attributes['height']);
