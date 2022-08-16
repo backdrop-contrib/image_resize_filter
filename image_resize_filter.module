@@ -267,9 +267,9 @@ function image_resize_filter_get_images($settings, $text) {
     // Find attributes of this image tag.
     $attribute_matches = array();
     preg_match_all('/([\w\-]+)[ ]*=[ ]*"([^"]*)"/i', $img_tag, $attribute_matches);
-    foreach ($attribute_matches[0] as $key => $match) {
-      $attribute = $attribute_matches[1][$key];
-      $attribute_value = $attribute_matches[2][$key];
+    foreach ($attribute_matches[0] as $attribute_key => $attribute_match) {
+      $attribute = $attribute_matches[1][$attribute_key];
+      $attribute_value = $attribute_matches[2][$attribute_key];
       $attributes[$attribute] = $attribute_value;
     }
 
@@ -326,9 +326,9 @@ function image_resize_filter_get_images($settings, $text) {
       if (array_key_exists('locale-url', variable_get('language_negotiation_language', array())) && variable_get('locale_language_negotiation_url_part', 0) == 0) {
         $languages = language_list();
         $lang_codes = array();
-        foreach ($languages as $key => $language) {
+        foreach ($languages as $language_key => $language) {
           if ($language->prefix) {
-            $lang_codes[$key] = preg_quote($language->prefix, '!');
+            $lang_codes[$language_key] = preg_quote($language->prefix, '!');
           }
         }
         $lang_codes = $lang_codes ? '((' . implode('|', $lang_codes) . ')/)?' : '';
