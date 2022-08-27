@@ -415,9 +415,9 @@ function image_resize_filter_get_images($settings, $text) {
       $attributes['width'] = (isset($attributes['width'])) ? $attributes['width'] : '';
     }
 
-    // Determine if this image requires a resize.
+    // Determine if this image requires a resize. Prevent upscaling.
     if (!isset($resize)) {
-      $resize = ($actual_width != $attributes['width'] || $actual_height != $attributes['height']);
+      $resize = ($actual_width > $attributes['width'] || $actual_height > $attributes['height']);
     }
 
     // Skip processing if the image is a remote tracking image.
