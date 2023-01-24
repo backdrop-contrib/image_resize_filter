@@ -153,7 +153,9 @@ function image_resize_filter_get_images($settings, $text) {
 
       // Build a list of acceptable language prefixes.
       $lang_codes = '';
-      if (array_key_exists('locale-url', variable_get('language_negotiation_language', array())) && variable_get('locale_language_negotiation_url_part', 0) == 0) {
+      $language_negotiation_language = config_get('language.settings', 'language_negotiation');
+      $language_negotiation_url_part = config_get('locale.settings', 'language_negotiation_url_part');
+      if (array_key_exists('locale-url', $language_negotiation_language) && $language_negotiation_url_part == 'path_prefix') {
         $languages = language_list();
         $lang_codes = array();
         foreach ($languages as $key => $language) {
@@ -328,7 +330,7 @@ function image_resize_filter_process_images($images, $text, $settings) {
     // Copy remote images locally.
     if ($image['location'] == 'remote') {
       $local_file_path = 'resize/remote/' . md5(file_get_contents($image['local_path'])) . '-' . $image['expected_size']['width'] . 'x' . $image['expected_size']['height'] . '.' . $image['extension'];
-      $image['destination'] = variable_get('file_default_scheme', 'public') . '://' . $local_file_path;
+      $image['destination'] = config_get('system.core', 'file_default_scheme') . '://' . $local_file_path;
     }
     // Destination and local path are the same if we're just adding attributes.
     elseif (!$image['resize']) {
