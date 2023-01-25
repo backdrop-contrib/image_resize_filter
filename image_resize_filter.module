@@ -176,15 +176,17 @@ function image_resize_filter_get_images($settings, $text) {
       $local_path = rawurldecode($local_path);
     }
 
-    // If this is an Image preset, generate the source image if necessary.
-    // Formatted as "uri://styles/[style-name]/[schema-name]/[original-path]".
-    $image_style_matches = array();
-    $scheme = file_uri_scheme($local_path);
-    if (!file_exists($local_path) && preg_match('!^' . $scheme . '://styles/([a-z0-9_\-]+)/([a-z0-9_\-]+)/(.*)$!i', $local_path, $image_style_matches) && function_exists('image_style_path')) {
-      $style_name = $image_style_matches[1];
-      $original_path = $scheme . '://' . $image_style_matches[3];
-      if ($style = image_style_load($style_name)) {
-        image_style_create_derivative($style, $original_path, $local_path);
+    if (!empty($local_path)) {
+      // If this is an Image preset, generate the source image if necessary.
+      // Formatted as "uri://styles/[style-name]/[schema-name]/[original-path]".
+      $image_style_matches = array();
+      $scheme = file_uri_scheme($local_path);
+      if (!file_exists($local_path) && preg_match('!^' . $scheme . '://styles/([a-z0-9_\-]+)/([a-z0-9_\-]+)/(.*)$!i', $local_path, $image_style_matches) && function_exists('image_style_path')) {
+        $style_name = $image_style_matches[1];
+        $original_path = $scheme . '://' . $image_style_matches[3];
+        if ($style = image_style_load($style_name)) {
+          image_style_create_derivative($style, $original_path, $local_path);
+        }
       }
     }
 
