@@ -427,51 +427,66 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#title' => t('If resized, add a link to the original image.'),
     '#weight' => 10,
     '#default_value' => $filter->settings['link'],
+    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image.'),
   );
 
-  $settings['image_resize']['link_class'] = array(
+  $settings['image_resize']['link_opts'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array(
+        'row',
+        'link-opts',
+      ),
+    ),
+    '#states' => array(
+      'visible' => array(
+        ':input[name=link]' => array('checked' => TRUE),
+      ),
+    ),
+    '#weight' => 11,
+  );
+
+  $settings['image_resize']['link_opts']['link_class'] = array(
     '#type' => 'textfield',
     '#title' => t('Optionally, give it the class'),
     '#size' => '10',
-    '#weight' => 12,
+    '#attributes' => array(
+      'class' => array(
+        'col-sm-6',
+      ),
+    ),
     '#default_value' => $filter->settings['link_class'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name=link]' => array('checked' => TRUE),
+  );
+
+    $settings['image_resize']['link_opts']['link_rel'] = array(
+      '#type' => 'textfield',
+      '#title' => t('and/or a rel attribute'),
+      '#size' => '10',
+      '#attributes' => array(
+        'class' => array(
+          'col-sm-6',
+        ),
       ),
-    ),
-  );
+      '#default_value' => $filter->settings['link_rel'],
+    );
 
-  $settings['image_resize']['link_rel'] = array(
-    '#type' => 'textfield',
-    '#title' => t('and/or a rel attribute'),
-    '#size' => '10',
-    '#weight' => 14,
-    '#default_value' => $filter->settings['link_rel'],
-    '#states' => array(
-      'visible' => array(
-        ':input[name=link]' => array('checked' => TRUE),
+    $settings['image_resize']['image_locations'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Resize images which are stored:'),
+      '#options' => array(
+        'local' => t('Locally'),
+        'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)'),
       ),
-    ),
-  );
+      '#weight' => 25,
+      '#default_value' => $filter->settings['image_locations'],
+      '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
+    );
 
-  $settings['image_resize']['image_locations'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Storage location of resized images'),
-    '#options' => array(
-      'local' => t('Locally'),
-      'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)'),
-    ),
-    '#weight' => 25,
-    '#default_value' => $filter->settings['image_locations'],
-    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
-  );
+    $settings['image_resize']['#attached']['css'] = array(
+      backdrop_get_path('module', 'image_resize_filter') . '/css/image_resize_filter.css',
+    );
 
-  $settings['image_resize']['#attached']['css'] = array(
-    backdrop_get_path('module', 'image_resize_filter') . '/css/image_resize_filter.css',
-  );
-
-  return $settings;
+    return $settings;
 }
 
 /**
@@ -490,9 +505,6 @@ function image_resize_filter_theme() {
   return array(
     'image_resize_filter_image' => array(
       'variables' => array('image' => NULL, 'settings' => NULL),
-    ),
-    'image_resize_filter_form' => array(
-      'render element' => 'form',
     ),
   );
 }
@@ -530,41 +542,6 @@ function image_resize_filter_form_system_file_system_settings_alter($form, $form
 function image_resize_filter_file_system_settings_submit($form, $form_state) {
   // Clear filter caches when changing file system information.
   cache_clear_all('*', 'cache_filter');
-}
-
-/**
- * Theme callback to theme the Image Resize Filter form.
- */
-function theme_image_resize_filter_form($variables) {
-  $form = $variables['form'];
-
-  $link = 'link';
-  $class = 'link_class';
-  $rel = 'link_rel';
-
-  $class_element = ' ' . backdrop_render($form[$class]);
-
-  $rel_element = ' ' . backdrop_render($form[$rel]);
-
-  $link_element = backdrop_render($form[$link]);
-
-  $output = '';
-  $output .= '<div class="container-inline image-resize-filter-link-options">';
-  $output .= $link_element;
-  $output .= $class_element;
-  $output .= $rel_element;
-  $output .= '</div>';
-
-  $form['placeholder'] = array(
-    '#type' => 'element',
-    '#title' => t('Link to the original'),
-    '#title_display' => 'before',
-    '#children' => $output,
-    '#weight' => 15,
-    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image. Adding the class "thickbox" is helpful if you have installed the <a href="http://drupal.org/project/thickbox">thickbox module</a>. The rel attribute may be useful when used with the <a href="http://drupal.org/project/lightbox2">lightbox2</a> and <a href="http://drupal.org/project/shadowbox">shadowbox</a> modules.'),
-  );
-
-  return filter_xss_admin($form['#description']) . backdrop_render_children($form);
 }
 
 /**

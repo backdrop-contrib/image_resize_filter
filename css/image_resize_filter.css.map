@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,eAAe,CAAC;EACd,aAAa,EAAE,CAAC;CACjB;;AACD,AAAA,UAAU,CAAC;EACT,OAAO,EAAE,uBAAuB;CASjC;;AAVD,AAEE,UAFQ,CAER,UAAU,CAAC;EACT,aAAa,EAAE,MAAM;EACrB,UAAU,EAAE,CAAC;CAKd;;AATH,AAKI,UALM,CAER,UAAU,CAGR,KAAK,CAAC;EACJ,WAAW,EAAE,MAAM;EACnB,SAAS,EAAE,KAAK;CACjB",
+    "sources": [
+        "image_resize_filter.scss"
+    ],
+    "names": [],
+    "file": "image_resize_filter.css"
+}
