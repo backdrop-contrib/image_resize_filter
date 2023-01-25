@@ -153,9 +153,9 @@ function image_resize_filter_get_images($settings, $text) {
 
       // Build a list of acceptable language prefixes.
       $lang_codes = '';
-      $language_negotiation_language = config_get('language.settings', 'language_negotiation');
+      $language_negotiation = config_get('language.settings', 'language_negotiation');
       $language_negotiation_url_part = config_get('locale.settings', 'language_negotiation_url_part');
-      if (array_key_exists('locale-url', $language_negotiation_language) && $language_negotiation_url_part == 'path_prefix') {
+      if (in_array('locale-url', $language_negotiation['language']) && $language_negotiation_url_part == 'path_prefix') {
         $languages = language_list();
         $lang_codes = array();
         foreach ($languages as $key => $language) {
