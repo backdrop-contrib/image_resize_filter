@@ -351,7 +351,7 @@ function image_resize_filter_process_images($images, $text, $settings) {
       // Basic flood prevention of resizing.
       $resize_threshold = $settings['resize_threshold'];
       if (!flood_is_allowed('image_resize_filter_resize', $resize_threshold, 120)) {
-        backdrop_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => floor($resize_threshold / 2))), 'error', FALSE);
+        backdrop_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => ceil($resize_threshold / 2))), 'error', FALSE);
         continue;
       }
       flood_register_event('image_resize_filter_resize', 120);
@@ -415,7 +415,7 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
   }
   $settings['image_resize']['resize_threshold'] = array(
     '#type' => 'number',
-    '#title' => t('Maximum number of remote images to resize'),
+    '#title' => t('Maximum number of images to resize at one time'),
     '#min' => 1,
     '#step' => 1,
     '#weight' => 1,
