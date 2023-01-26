@@ -420,6 +420,7 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#step' => 1,
     '#weight' => 1,
     '#default_value' => $default_threshold,
+    '#description' => t('Note that setting this value very high could cause performance issues. The default is 10.'),
   );
 
   $settings['image_resize']['link'] = array(
