@@ -420,7 +420,7 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#step' => 1,
     '#weight' => 1,
     '#default_value' => $default_threshold,
-    '#description' => t('Note that setting this value very high could cause performance issues. The default is 10.'),
+    '#description' => t('Note that setting this value very high could cause performance issues. The default is 10.)'),
   );
 
   $settings['image_resize']['link'] = array(
@@ -459,35 +459,35 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#default_value' => $filter->settings['link_class'],
   );
 
-    $settings['image_resize']['link_opts']['link_rel'] = array(
-      '#type' => 'textfield',
-      '#title' => t('and/or a rel attribute'),
-      '#size' => '10',
-      '#attributes' => array(
-        'class' => array(
-          'col-sm-6',
-        ),
+  $settings['image_resize']['link_opts']['link_rel'] = array(
+    '#type' => 'textfield',
+    '#title' => t('and/or a rel attribute'),
+    '#size' => '10',
+    '#attributes' => array(
+      'class' => array(
+        'col-sm-6',
       ),
-      '#default_value' => $filter->settings['link_rel'],
-    );
+    ),
+    '#default_value' => $filter->settings['link_rel'],
+  );
 
-    $settings['image_resize']['image_locations'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Resize images which are stored:'),
-      '#options' => array(
-        'local' => t('Locally'),
-        'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)'),
-      ),
-      '#weight' => 25,
-      '#default_value' => $filter->settings['image_locations'],
-      '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
-    );
+  $settings['image_resize']['image_locations'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Resize images which are stored:'),
+    '#options' => array(
+      'local' => t('Locally'),
+      'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)'),
+    ),
+    '#weight' => 25,
+    '#default_value' => $filter->settings['image_locations'],
+    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
+  );
 
-    $settings['image_resize']['#attached']['css'] = array(
-      backdrop_get_path('module', 'image_resize_filter') . '/css/image_resize_filter.css',
-    );
+  $settings['image_resize']['#attached']['css'] = array(
+    backdrop_get_path('module', 'image_resize_filter') . '/css/image_resize_filter.css',
+  );
 
-    return $settings;
+  return $settings;
 }
 
 /**
