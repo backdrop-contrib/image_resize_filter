@@ -153,12 +153,15 @@ function image_resize_filter_get_images($settings, $text) {
 
       // Build a list of acceptable language prefixes.
       $lang_codes = '';
-      if (array_key_exists('locale-url', variable_get('language_negotiation_language', array())) && variable_get('locale_language_negotiation_url_part', 0) == 0) {
+      $language_negotiation = config_get('language.settings', 'language_negotiation');
+      $language_negotiation_url_part = config_get('locale.settings', 'language_negotiation_url_part');
+      if (in_array('locale-url', $language_negotiation['language']) && $language_negotiation_url_part == 'path_prefix') {
         $languages = language_list();
+        $prefixes = locale_language_negotiation_url_prefixes();
         $lang_codes = array();
-        foreach ($languages as $language_key => $language) {
-          if ($language->prefix) {
-            $lang_codes[$language_key] = preg_quote($language->prefix, '!');
+        foreach ($languages as $language) {
+          if (!empty($prefixes[$language->langcode])) {
+            $lang_codes[$language->langcode] = preg_quote($prefixes[$language->langcode], '!');
           }
         }
         $lang_codes = $lang_codes ? '((' . implode('|', $lang_codes) . ')/)?' : '';
@@ -330,7 +333,7 @@ function image_resize_filter_process_images($images, $text, $settings) {
     // Copy remote images locally.
     if ($image['location'] == 'remote') {
       $local_file_path = 'resize/remote/' . md5(file_get_contents($image['local_path'])) . '-' . $image['expected_size']['width'] . 'x' . $image['expected_size']['height'] . '.' . $image['extension'];
-      $image['destination'] = variable_get('file_default_scheme', 'public') . '://' . $local_file_path;
+      $image['destination'] = config_get('system.core', 'file_default_scheme') . '://' . $local_file_path;
     }
     // Destination and local path are the same if we're just adding attributes.
     elseif (!$image['resize']) {
