@@ -97,9 +97,9 @@ function image_resize_filter_get_images($settings, $text) {
     // Find attributes of this image tag.
     $attribute_matches = array();
     preg_match_all('/([\w\-]+)[ ]*=[ ]*"([^"]*)"/i', $img_tag, $attribute_matches);
-    foreach ($attribute_matches[0] as $key => $match) {
-      $attribute = $attribute_matches[1][$key];
-      $attribute_value = $attribute_matches[2][$key];
+    foreach ($attribute_matches[0] as $attribute_key => $attribute_match) {
+      $attribute = $attribute_matches[1][$attribute_key];
+      $attribute_value = $attribute_matches[2][$attribute_key];
       $attributes[$attribute] = $attribute_value;
     }
 
@@ -179,15 +179,17 @@ function image_resize_filter_get_images($settings, $text) {
       $local_path = rawurldecode($local_path);
     }
 
-    // If this is an Image preset, generate the source image if necessary.
-    // Formatted as "uri://styles/[style-name]/[schema-name]/[original-path]".
-    $image_style_matches = array();
-    $scheme = file_uri_scheme($local_path);
-    if (!file_exists($local_path) && preg_match('!^' . $scheme . '://styles/([a-z0-9_\-]+)/([a-z0-9_\-]+)/(.*)$!i', $local_path, $image_style_matches) && function_exists('image_style_path')) {
-      $style_name = $image_style_matches[1];
-      $original_path = $scheme . '://' . $image_style_matches[3];
-      if ($style = image_style_load($style_name)) {
-        image_style_create_derivative($style, $original_path, $local_path);
+    if (!empty($local_path)) {
+      // If this is an Image preset, generate the source image if necessary.
+      // Formatted as "uri://styles/[style-name]/[schema-name]/[original-path]".
+      $image_style_matches = array();
+      $scheme = file_uri_scheme($local_path);
+      if (!file_exists($local_path) && preg_match('!^' . $scheme . '://styles/([a-z0-9_\-]+)/([a-z0-9_\-]+)/(.*)$!i', $local_path, $image_style_matches) && function_exists('image_style_path')) {
+        $style_name = $image_style_matches[1];
+        $original_path = $scheme . '://' . $image_style_matches[3];
+        if ($style = image_style_load($style_name)) {
+          image_style_create_derivative($style, $original_path, $local_path);
+        }
       }
     }
 
