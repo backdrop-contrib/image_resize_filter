@@ -45,6 +45,12 @@ function image_resize_filter_process_filter($text, $filter) {
   $settings['class'] = $filter->settings['link_class'];
   $settings['rel'] = $filter->settings['link_rel'];
   $settings['image_locations'] = array_filter($filter->settings['image_locations']);
+  if (empty($filter->settings['resize_threshold']) || !is_numeric($filter->settings['resize_threshold'])) {
+    $settings['resize_threshold'] = config_get('image_resize_filter.settings', 'threshold');
+  }
+  else {
+    $settings['resize_threshold'] = $filter->settings['resize_threshold'];
+  }
   $images = image_resize_filter_get_images($settings, $text);
   return $images ? image_resize_filter_process_images($images, $text, $settings) : $text;
 }
@@ -196,7 +202,7 @@ function image_resize_filter_get_images($settings, $text) {
     // If this is a remote image, retrieve it to check its size.
     if ($location == 'remote') {
       // Basic flood prevention on remote images.
-      $resize_threshold = config_get('image_resize_filter.settings', 'threshold');
+      $resize_threshold = $settings['resize_threshold'];
       if (!flood_is_allowed('image_resize_filter_remote', $resize_threshold, 120)) {
         backdrop_set_message(t('Image resize threshold of @count remote images has been reached. Please use fewer remote images.', array('@count' => $resize_threshold)), 'error', FALSE);
         continue;
@@ -348,9 +354,9 @@ function image_resize_filter_process_images($images, $text, $settings) {
 
     if (!file_exists($image['destination'])) {
       // Basic flood prevention of resizing.
-      $resize_threshold = config_get('image_resize_filter.settings', 'threshold');
+      $resize_threshold = $settings['resize_threshold'];
       if (!flood_is_allowed('image_resize_filter_resize', $resize_threshold, 120)) {
-        backdrop_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => floor($resize_threshold / 2))), 'error', FALSE);
+        backdrop_set_message(t('Image resize threshold of @count per minute reached. Some images have not been resized. Resave the content to resize remaining images.', array('@count' => ceil($resize_threshold / 2))), 'error', FALSE);
         continue;
       }
       flood_register_event('image_resize_filter_resize', 120);
@@ -406,32 +412,84 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#parents' => array('filters', 'image_resize_filter', 'settings'),
   );
 
-  $settings['image_resize']['image_locations'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Resize images stored'),
-    '#options' => array('local' => t('Locally'), 'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)')),
-    '#default_value' => $filter->settings['image_locations'],
-    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
+  if (!empty($filter->settings['resize_threshold'])) {
+    $default_threshold = $filter->settings['resize_threshold'];
+  }
+  else {
+    $default_threshold = config_get('image_resize_filter.settings', 'threshold');
+  }
+  $settings['image_resize']['resize_threshold'] = array(
+    '#type' => 'number',
+    '#title' => t('Maximum number of images to resize at one time'),
+    '#min' => 1,
+    '#step' => 1,
+    '#weight' => 1,
+    '#default_value' => $default_threshold,
+    '#description' => t('Note that setting this value very high could cause performance issues. The default is 10.)'),
   );
 
   $settings['image_resize']['link'] = array(
     '#type' => 'checkbox',
     '#title' => t('If resized, add a link to the original image.'),
+    '#weight' => 10,
     '#default_value' => $filter->settings['link'],
+    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image.'),
   );
 
-  $settings['image_resize']['link_class'] = array(
+  $settings['image_resize']['link_opts'] = array(
+    '#type' => 'container',
+    '#attributes' => array(
+      'class' => array(
+        'row',
+        'link-opts',
+      ),
+    ),
+    '#states' => array(
+      'visible' => array(
+        ':input[name=link]' => array('checked' => TRUE),
+      ),
+    ),
+    '#weight' => 11,
+  );
+
+  $settings['image_resize']['link_opts']['link_class'] = array(
     '#type' => 'textfield',
     '#title' => t('Optionally, give it the class'),
     '#size' => '10',
+    '#attributes' => array(
+      'class' => array(
+        'col-sm-6',
+      ),
+    ),
     '#default_value' => $filter->settings['link_class'],
   );
 
-  $settings['image_resize']['link_rel'] = array(
+  $settings['image_resize']['link_opts']['link_rel'] = array(
     '#type' => 'textfield',
     '#title' => t('and/or a rel attribute'),
     '#size' => '10',
+    '#attributes' => array(
+      'class' => array(
+        'col-sm-6',
+      ),
+    ),
     '#default_value' => $filter->settings['link_rel'],
+  );
+
+  $settings['image_resize']['image_locations'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Resize images which are stored:'),
+    '#options' => array(
+      'local' => t('Locally'),
+      'remote' => t('On remote servers (note: this copies <em>all</em> remote images locally)'),
+    ),
+    '#weight' => 25,
+    '#default_value' => $filter->settings['image_locations'],
+    '#description' => t('This option will determine which images will be analyzed for &lt;img&gt; tag differences. Enabling resizing of remote images can have performance impacts, as all images in the filtered text needs to be transferred via HTTP each time the filter cache is cleared.'),
+  );
+
+  $settings['image_resize']['#attached']['css'] = array(
+    backdrop_get_path('module', 'image_resize_filter') . '/css/image_resize_filter.css',
   );
 
   return $settings;
@@ -453,9 +511,6 @@ function image_resize_filter_theme() {
   return array(
     'image_resize_filter_image' => array(
       'variables' => array('image' => NULL, 'settings' => NULL),
-    ),
-    'image_resize_filter_form' => array(
-      'render element' => 'form',
     ),
   );
 }
@@ -493,52 +548,6 @@ function image_resize_filter_form_system_file_system_settings_alter($form, $form
 function image_resize_filter_file_system_settings_submit($form, $form_state) {
   // Clear filter caches when changing file system information.
   cache_clear_all('*', 'cache_filter');
-}
-
-/**
- * Theme callback to theme the Image Resize Filter form.
- */
-function theme_image_resize_filter_form($variables) {
-  $form = $variables['form'];
-
-  $link = 'link';
-  $class = 'link_class';
-  $rel = 'link_rel';
-
-  $class_element = ' ';
-  $class_element .= '<span class="image-resize-filter-class">';
-  $class_element .= check_plain($form[$class]['#title']) . ': ';
-  $form[$class]['#title'] = NULL;
-  $class_element .= backdrop_render($form[$class]);
-  $class_element .= '</span>';
-
-  $rel_element = ' ';
-  $rel_element .= '<span class="image-resize-filter-rel">';
-  $rel_element .= check_plain($form[$rel]['#title']) . ': ';
-  $form[$rel]['#title'] = NULL;
-  $rel_element .= backdrop_render($form[$rel]);
-  $rel_element .= '</span>';
-
-  $link_element = backdrop_render($form[$link]);
-
-  $output = '';
-  $output .= '<div class="container-inline image-resize-filter-link-options">';
-  $output .= $link_element;
-  $output .= $class_element;
-  $output .= $rel_element;
-  $output .= '</div>';
-
-  $form['placeholder'] = array(
-    '#type' => 'element',
-    '#title' => t('Link to the original'),
-    '#title_display' => 'before',
-    '#children' => $output,
-    '#description' => t('Linking to the original can be helpful to give users a full-size view of the image. Adding the class "thickbox" is helpful if you have installed the <a href="http://drupal.org/project/thickbox">thickbox module</a>. The rel attribute may be useful when used with the <a href="http://drupal.org/project/lightbox2">lightbox2</a> and <a href="http://drupal.org/project/shadowbox">shadowbox</a> modules.'),
-  );
-
-  // Add a little bit of JavaScript. Not cached since it's only used here.
-  backdrop_add_js(backdrop_get_path('module', 'image_resize_filter') . '/js/image_resize_filter.js', array('aggregate' => FALSE));
-  return filter_xss_admin($form['#description']) . backdrop_render_children($form);
 }
 
 /**
