@@ -50,3 +50,26 @@ function image_resize_filter_update_1000() {
   update_variable_del('image_resize_filter_threshold');
 }
 
+/**
+ * Add an image style for webp conversion.
+ */
+function image_resize_filter_update_1100() {
+  $data = array(
+    'overridden' => FALSE,
+    'module' => 'image_resize_filter',
+    'label' => 'Webp conversion',
+    'name' => 'webp_image_resize_filter',
+    'effects' => array(
+    array(
+      'name' => 'coloractions_convert',
+      'data' => array(
+        'format' => 'image/webp',
+      ),
+      'weight' => 99,
+    ),
+    ),
+  );
+  $config = config('image.style.webp_image_resize_filter');
+  $config->setData($data);
+  $config->save();
+}

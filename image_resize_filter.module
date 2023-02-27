@@ -26,6 +26,7 @@ function image_resize_filter_filter_info() {
     'process callback' => 'image_resize_filter_process_filter',
     'settings callback' => 'image_resize_filter_form',
     'default settings' => array(
+      'webp' => 0,
       'link' => 0,
       'link_class' => '',
       'link_rel' => '',
@@ -41,6 +42,7 @@ function image_resize_filter_filter_info() {
  * Filter callback function.
  */
 function image_resize_filter_process_filter($text, $filter) {
+  $settings['webp'] = $filter->settings['webp'];
   $settings['link'] = $filter->settings['link'];
   $settings['class'] = $filter->settings['link_class'];
   $settings['rel'] = $filter->settings['link_rel'];
@@ -428,6 +430,18 @@ function image_resize_filter_form($form, &$form_state, $filter, $format) {
     '#description' => t('Note that setting this value very high could cause performance issues. The default is 10.)'),
   );
 
+  $settings['image_resize']['webp'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Convert to webp.'),
+    '#weight' => 8,
+    '#default_value' => $filter->settings['webp'],
+    '#description' => t('Convert to webp format while resizing.'),
+  );
+  if (!module_exists('image_effects_coloractions')) {
+    $settings['image_resize']['webp']['#disabled'] = TRUE;
+    $settings['image_resize']['webp']['#default_value'] = FALSE;
+    $settings['image_resize']['webp']['#description'] = t('The <em>Image Effects</em> module\'s <em>Color and Conversion Actions</em> sub-module is needed to enable this functionality.');
+  }
   $settings['image_resize']['link'] = array(
     '#type' => 'checkbox',
     '#title' => t('If resized, add a link to the original image.'),
@@ -559,7 +573,11 @@ function image_resize_filter_file_system_settings_submit($form, $form_state) {
  *   Settings for the input filter.
  */
 function image_resize_filter_image_tag($image = NULL, $settings = NULL) {
-  $src = file_create_url($image['destination']);
+  if (module_exists('image_effects_coloractions') && !empty($settings['webp']) && !($image['extension'] == 'webp')) {
+    $src = image_style_url('webp_image_resize_filter', $image['destination']);
+  } else {
+    $src = file_create_url($image['destination']);
+  }
 
   // Strip the http:// from the path if the original did not include it.
   if (!preg_match('/^http[s]?:\/\/' . preg_quote($_SERVER['HTTP_HOST']) . '/', $image['original'])) {

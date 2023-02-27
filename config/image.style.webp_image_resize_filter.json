@@ -1,0 +1,15 @@
+{
+    "_config_name": "image.style.webp_image_resize_filter",
+    "label": "Webp conversion",
+    "name": "webp_image_resize_filter",
+    "module": "image_resize_filter",
+    "effects": [
+        {
+            "name": "coloractions_convert",
+            "data": {
+                "format": "image/webp"
+            },
+            "weight": 1
+        }
+    ]
+}
