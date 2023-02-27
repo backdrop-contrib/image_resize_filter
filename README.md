@@ -6,14 +6,12 @@ Users never have to worry about uploading pre-sized images again; they can just
 insert an image, set its width and height properties, and the image is
 automatically resized on output.
 
-Installation
+Installation and Usage
 ------------
 
-- Install this module using the official Backdrop CMS instructions at
-  https://backdropcms.org/guide/modules
-
-- Visit the configuration page under Administration > Configuration > Content
-  authoring > Text editors and formats (admin/config/content/formats) and click
+- Install this module using the [official Backdrop CMS instructions](https://backdropcms.org/guide/modules)
+- Visit the configuration page under **Administration > Configuration > Content
+  authoring > Text editors and formats** (admin/config/content/formats) and click
   'Configure' next to the text editor you want the image resize filter enabled
   for.
 
@@ -28,18 +26,19 @@ Installation
 
   If using the Image Resize Filter with BBCode or some other non-HTML filter,
   the 'Image resize filter' must be run AFTER the BBCode filter. If using
-  Pathologic (https://backdropcms.org/project/pathologic), Image Resize Filter
+  [Pathologic](https://backdropcms.org/project/pathologic), Image Resize Filter
   must be run AFTER the Pathologic filter too, since Pathologic must correct
   image path locations for Image Resize Filter to find the images.
 
 - Optional: Click the Image resize filter tab underneath 'Filter settings' to
   set additional configuration for the the image resize filter.
+- Further usage instructions can be [viewed and edited in the Wiki](https://github.com/backdrop-contrib/image_resize_filter/wiki).
+
 
 Issues
 ------
 
-Bugs and Feature requests should be reported in the Issue Queue:
-https://github.com/backdrop-contrib/image_resize_filter/issues
+Bugs and Feature requests should be reported in the [Issue Queue](https://github.com/backdrop-contrib/image_resize_filter/issues).
 
 It is important to understand that Image Resize Filter has absolutely no effect
 on the content creation form. If you are having trouble resizing an image in an
@@ -50,12 +49,14 @@ absolutely no effect on editing or creating new content.
 Current Maintainer
 -------
 
-- [Laryn Kragt Bakker](https://github.com/laryn), [CEDC.org](https://CEDC.org) 
+- [Laryn Kragt Bakker](https://github.com/laryn).
 
 Credits
 -------
 
+- Current development is supported by [Aten Design Group](https://aten.io).
 - Ported to Backdrop CMS by [Peter Anderson](https://github.com/BWPanda).
+- Some past Backdrop development was supported by [CEDC](https://cedc.org).
 - Originally written for Drupal by [Nate Lampton](https://github.com/quicksketch).
 
 License
