@@ -165,7 +165,7 @@ function image_resize_filter_get_images($settings, $text) {
       $language_negotiation_url_part = config_get('locale.settings', 'language_negotiation_url_part');
       if (!empty($language_negotiation) && in_array('locale-url', $language_negotiation['language']) && $language_negotiation_url_part == 'path_prefix') {
         $languages = language_list();
-        $prefixes = locale_language_negotiation_url_prefixes();
+        $prefixes = config_get('locale.settings', 'language_negotiation_url_prefixes');
         $lang_codes = array();
         foreach ($languages as $language) {
           if (!empty($prefixes[$language->langcode])) {
